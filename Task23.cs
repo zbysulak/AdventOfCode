@@ -1,3 +1,5 @@
+using System.Drawing;
+
 namespace AdventOfCode;
 
 public class Task23
@@ -139,63 +141,80 @@ public class Task23
         Console.WriteLine();
     }
 
+    private void PrintElves2(Elf2?[,] elves)
+    {
+        for (int y = 0; y < elves.GetLength(0); y++)
+        {
+            for (int x = 0; x < elves.GetLength(1); x++)
+            {
+                Console.Write(elves[y, x] is not null ? "#" : ".");
+            }
+
+            Console.WriteLine();
+        }
+
+        Console.WriteLine();
+    }
+
+    private class Elf2
+    {
+        public Point? ProposedPosition { get; set; }
+    }
+
     public void Solve2(string[] lines)
     {
-        var elves = new List<Elf>();
+        var elves = new Elf2?[lines[0].Length * 3, lines.Length * 3];
+
         for (int i = 0; i < lines.Length; i++)
         {
             for (int j = 0; j < lines[i].Length; j++)
             {
                 if (lines[i][j] == '#')
-                    elves.Add(new Elf { X = j, Y = i });
+                    elves[i + lines[0].Length, lines.Length + j] = new Elf2();
             }
         }
 
-        var checks = new List<Func<Elf, bool>>
+        var checks = new List<Func<int, int, bool>>
         {
-            elf =>
+            (x, y) =>
             {
                 // check north
-                if (!elves.Any(e => e.Y == elf.Y - 1 && Math.Abs(e.X - elf.X) <= 1))
+                if (elves[y - 1, x - 1] is null && elves[y - 1, x] is null && elves[y - 1, x + 1] is null)
                 {
-                    elf.NextY = elf.Y - 1;
-                    elf.NextX = elf.X;
+                    elves[y, x].ProposedPosition = new Point(x, y - 1);
                     return true;
                 }
 
                 return false;
             },
-            elf =>
+            (x, y) =>
             {
                 // check south
-                if (!elves.Any(e => e.Y == elf.Y + 1 && Math.Abs(e.X - elf.X) <= 1))
+                if (elves[y + 1, x - 1] is null && elves[y + 1, x] is null && elves[y + 1, x + 1] is null)
                 {
-                    elf.NextY = elf.Y + 1;
-                    elf.NextX = elf.X;
+                    elves[y, x].ProposedPosition = new Point(x, y + 1);
                     return true;
                 }
 
                 return false;
             },
-            elf =>
+            (x, y) =>
             {
                 // check west
-                if (!elves.Any(e => e.X == elf.X - 1 && Math.Abs(e.Y - elf.Y) <= 1))
+                if (elves[y - 1, x - 1] is null && elves[y, x - 1] is null && elves[y + 1, x - 1] is null)
                 {
-                    elf.NextY = elf.Y;
-                    elf.NextX = elf.X - 1;
+                    elves[y, x].ProposedPosition = new Point(x - 1, y);
                     return true;
                 }
 
                 return false;
             },
-            elf =>
+            (x, y) =>
             {
                 // check east
-                if (!elves.Any(e => e.X == elf.X + 1 && Math.Abs(e.Y - elf.Y) <= 1))
+                if (elves[y - 1, x + 1] is null && elves[y, x + 1] is null && elves[y + 1, x + 1] is null)
                 {
-                    elf.NextY = elf.Y;
-                    elf.NextX = elf.X + 1;
+                    elves[y, x].ProposedPosition = new Point(x + 1, y);
                     return true;
                 }
 
@@ -203,7 +222,14 @@ public class Task23
             }
         };
 
-        PrintElves(elves);
+        PrintElves2(elves);
+
+        bool CheckPropositions(Point p)
+        {
+            return new List<Elf2?>
+                    { elves[p.Y - 1, p.X], elves[p.Y + 1, p.X], elves[p.Y, p.X - 1], elves[p.Y, p.X + 1] }
+                .Count(e => e is not null && e.ProposedPosition == p) == 1;
+        }
 
         var firstCheck = 0;
         var someoneWantsToMove = true;
@@ -213,44 +239,56 @@ public class Task23
             rounds++;
             someoneWantsToMove = false;
             // proposing next move
-            foreach (var elf in elves)
+            for (int y = 1; y < elves.GetLength(0) - 1; y++) // to prevent indexOutOfBounds..
             {
-                // no other elf around him -> don't move 
-                if (!elves.Any(e =>
-                        Math.Abs(e.X - elf.X) <= 1 && Math.Abs(e.Y - elf.Y) <= 1 && !(elf.X == e.X && elf.Y == e.Y)))
+                for (int x = 1; x < elves.GetLength(1) - 1; x++)
                 {
-                    elf.NextX = elf.X;
-                    elf.NextY = elf.Y;
-                    continue;
-                }
+                    // no elf..
+                    if (elves[y, x] is null) continue;
 
-                // propose next move
-                for (int ch = firstCheck; ch < firstCheck + 4; ch++)
-                {
-                    var check = ch % 4;
-                    if (checks[check](elf))
+                    elves[y, x].ProposedPosition = null;
+                    // no other elf around him -> don't move 
+                    if (elves[y - 1, x - 1] is null && elves[y - 1, x] is null && elves[y - 1, x + 1] is null &&
+                        elves[y, x - 1] is null && elves[y, x + 1] is null &&
+                        elves[y + 1, x - 1] is null && elves[y + 1, x] is null && elves[y + 1, x + 1] is null)
                     {
-                        someoneWantsToMove = true;
-                        break;
+                        elves[y, x].ProposedPosition = new(x, y);
+                        continue;
+                    }
+
+                    // propose next move
+                    for (int ch = firstCheck; ch < firstCheck + 4; ch++)
+                    {
+                        var check = ch % 4;
+                        if (checks[check](x, y))
+                        {
+                            someoneWantsToMove = true;
+                            break;
+                        }
                     }
                 }
             }
 
-            foreach (var elf in elves)
+            for (int y = 0; y < elves.GetLength(0); y++)
             {
-                var otherElves = elves.Where(e => !(e.X == elf.X && e.Y == elf.Y));
-                if (!otherElves.Any(e => e.NextX == elf.NextX && e.NextY == elf.NextY))
+                for (int x = 0; x < elves.GetLength(1); x++)
                 {
-                    elf.X = elf.NextX;
-                    elf.Y = elf.NextY;
+                    var elf = elves[y, x];
+                    if (elf?.ProposedPosition is null) continue;
+                    if (CheckPropositions(elf.ProposedPosition.Value))
+                    {
+                        elves[elf.ProposedPosition.Value.Y, elf.ProposedPosition.Value.X] = elf;
+                        elf.ProposedPosition = null;
+                        elves[y, x] = null;
+                    }
                 }
             }
 
             firstCheck++;
-            Console.WriteLine(rounds);
-            PrintElves(elves);
+            //Console.WriteLine(rounds);
+            //PrintElves2(elves);
         }
-
+        PrintElves2(elves);
         Console.WriteLine(rounds);
     }
 }
