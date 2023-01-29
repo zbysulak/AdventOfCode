@@ -1,3 +1,5 @@
+// Day 3: Rucksack Reorganization
+
 public class Task03 : ITask
 {
     public void Solve(string[] lines)

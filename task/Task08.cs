@@ -1,291 +1,160 @@
+// Day 8: Treetop Tree House
+
 namespace AdventOfCode;
 
-public class Task08 : ITask
+public class Task07 : ITask
 {
-    private class Position
-    {
-        public int X { get; set; }
-        public int Y { get; set; }
-
-        public Position()
-        {
-        }
-
-        public Position(int x, int y)
-        {
-            X = x;
-            Y = y;
-        }
-    }
-
-    private class Rope
-    {
-        public Position Head { get; set; }
-        public Position Tail { get; set; }
-
-        public int TailsDistance => TailsHistory.Count;
-
-        private HashSet<(int, int)> TailsHistory;
-
-        public Rope()
-        {
-            Head = new Position { X = 0, Y = 0 };
-            Tail = new Position { X = 0, Y = 0 };
-            TailsHistory = new HashSet<(int, int)>
-            {
-                (Tail.X, Tail.Y)
-            };
-        }
-
-        public void MakeMove(string move)
-        {
-            var i = move.Split(' ');
-            for (int j = 0; j < int.Parse(i[1]); j++)
-            {
-                SingleMove(i[0]);
-                //Console.WriteLine($"Moved to {i[0]}");
-                //Print(5);
-            }
-        }
-
-        public void Print(int size)
-        {
-            for (int y = size; y >= 0; y--)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    if (Head.X == x && Head.Y == y)
-                        Console.Write("H");
-                    else if (Tail.X == x && Tail.Y == y)
-                        Console.Write("T");
-                    else
-                        Console.Write(".");
-                }
-
-                Console.WriteLine();
-            }
-
-            Console.WriteLine();
-        }
-
-        public void PrintHistory(int size)
-        {
-            for (int y = size; y >= 0; y--)
-            {
-                for (int x = 0; x < size; x++)
-                {
-                    if (TailsHistory.Contains((x, y)))
-                        Console.Write("#");
-                    else
-                        Console.Write(".");
-                }
-
-                Console.WriteLine();
-            }
-
-            Console.WriteLine();
-        }
-
-        private void SingleMove(string direction)
-        {
-            switch (direction)
-            {
-                case "L":
-                    Head.X--;
-                    if (Tail.X - Head.X > 1)
-                    {
-                        Tail.X--;
-                        Tail.Y = Head.Y;
-                    }
-
-                    break;
-                case "R":
-                    Head.X++;
-                    if (Head.X - Tail.X > 1)
-                    {
-                        Tail.X++;
-                        Tail.Y = Head.Y;
-                    }
-
-                    break;
-                case "U":
-                    Head.Y++;
-                    if (Head.Y - Tail.Y > 1)
-                    {
-                        Tail.Y++;
-                        Tail.X = Head.X;
-                    }
-
-                    break;
-                case "D":
-                    Head.Y--;
-                    if (Tail.Y - Head.Y > 1)
-                    {
-                        Tail.Y--;
-                        Tail.X = Head.X;
-                    }
-
-                    break;
-                default:
-                    throw new Exception("Invalid move");
-            }
-
-            TailsHistory.Add((Tail.X, Tail.Y));
-        }
-    }
-
     public void Solve(string[] lines)
     {
-        var rope = new Rope();
-        foreach (var line in lines)
+        var forest = ParseInput(lines);
+        //PrintForestWithVisibility(forest);
+        var numberOfVisibleTrees = 0;
+        for (int i = 0; i < forest.GetLength(0); i++)
         {
-            rope.MakeMove(line);
-            //rope.Print(5);
+            for (int j = 0; j < forest.GetLength(1); j++)
+            {
+                numberOfVisibleTrees += IsTreeVisible(forest, i, j) ? 1 : 0;
+            }
         }
 
-        //rope.PrintHistory(5);
-        Console.WriteLine(rope.TailsDistance);
+        Console.WriteLine(numberOfVisibleTrees);
     }
 
-    private class LongerRope
+    private void PrintForestWithVisibility(short[,] forest)
     {
-        public Position[] Knots { get; set; }
-
-        public int TailsDistance => TailsHistory.Count;
-
-        private HashSet<(int, int)> TailsHistory;
-
-        public LongerRope(int length)
+        for (int i = 0; i < forest.GetLength(0); i++)
         {
-            Knots = new Position[length];
-            for (int i = 0; i < length; i++)
+            for (int j = 0; j < forest.GetLength(1); j++)
             {
-                Knots[i] = new Position(0, 0);
-            }
-
-            TailsHistory = new HashSet<(int, int)>
-            {
-                (Knots.Last().X, Knots.Last().Y)
-            };
-        }
-
-        public void MakeMove(string move)
-        {
-            var i = move.Split(' ');
-            Console.WriteLine($"Moving {i[1]} to {i[0]}\n");
-            for (int j = 0; j < int.Parse(i[1]); j++)
-            {
-                SingleMove(i[0]);
-                //Print();
-            }
-        }
-
-        public void Print()
-        {
-            for (int y = 4; y >= 0; y--)
-            {
-                for (int x = 0; x < 6; x++)
-                {
-                    var noKnot = true;
-                    for (int i = 0; i < Knots.Length; i++)
-                    {
-                        if (Knots[i].X == x && Knots[i].Y == y)
-                        {
-                            Console.Write(i == 0 ? "H" : i);
-                            noKnot = false;
-                            break;
-                        }
-                    }
-
-                    if (noKnot) Console.Write(x == 0 && y == 0 ? "s" : ".");
-                }
-
-                Console.WriteLine();
+                Console.Write(forest[i, j] + (IsTreeVisible(forest, i, j) ? "+" : "-"));
             }
 
             Console.WriteLine();
         }
+    }
 
-        public void PrintHistory()
+    private bool IsTreeVisible(short[,] forest, int row, int col)
+    {
+        if (row == 0 || row == forest.GetLength(0) || col == 0 || col == forest.GetLength(1))
+            return true; // trees on the edge are always visible
+        var currentTree = forest[row, col];
+        bool left = true, right = true, top = true, bottom = true;
+
+        for (int c = 0; c < col; c++)
         {
-            for (int y = 4; y >= 0; y--)
+            if (forest[row, c] >= currentTree)
             {
-                for (int x = 0; x < 6; x++)
-                {
-                    if (x == 0 && y == 0)
-                        Console.Write("s");
-                    else if (TailsHistory.Contains((x, y)))
-                        Console.Write("#");
-                    else
-                        Console.Write(".");
-                }
-
-                Console.WriteLine();
+                left = false;
+                break;
             }
-
-            Console.WriteLine();
         }
 
-        private void SingleMove(string direction)
+        for (int c = forest.GetLength(1) - 1; c > col; c--)
         {
-            switch (direction)
+            if (forest[row, c] >= currentTree)
             {
-                case "L":
-                    Knots.First().X--;
-                    break;
-                case "R":
-                    Knots.First().X++;
-                    break;
-                case "U":
-                    Knots.First().Y++;
-                    break;
-                case "D":
-                    Knots.First().Y--;
-                    break;
-                default:
-                    throw new Exception("Invalid move");
+                right = false;
+                break;
             }
-
-            for (int i = 0; i < Knots.Length - 1; i++)
-            {
-                var k1 = Knots[i];
-                var k2 = Knots[i + 1];
-                if (k1.X - k2.X > 1) // moving right
-                {
-                    k2.X++;
-                    k2.Y += k1.Y == k2.Y ? 0 : k1.Y > k2.Y ? 1 : -1; // because knot could also be (+2,+2) blocks away..
-                }
-                else if (k1.X - k2.X < -1) // moving left
-                {
-                    k2.X--;
-                    k2.Y += k1.Y == k2.Y ? 0 : k1.Y > k2.Y ? 1 : -1;
-                }
-                else if (k1.Y - k2.Y > 1) // moving up
-                {
-                    k2.Y++;
-                    k2.X += k1.X == k2.X ? 0 : k1.X > k2.X ? 1 : -1;
-                }
-                else if (k1.Y - k2.Y < -1) // moving down
-                {
-                    k2.Y--;
-                    k2.X += k1.X == k2.X ? 0 : k1.X > k2.X ? 1 : -1;
-                }
-            }
-
-            TailsHistory.Add((Knots.Last().X, Knots.Last().Y));
         }
+
+        for (int r = 0; r < row; r++)
+        {
+            if (forest[r, col] >= currentTree)
+            {
+                top = false;
+                break;
+            }
+        }
+
+        for (int r = forest.GetLength(0) - 1; r > row; r--)
+        {
+            if (forest[r, col] >= currentTree)
+            {
+                bottom = false;
+                break;
+            }
+        }
+
+        return left | right | top | bottom;
     }
 
     public void Solve2(string[] lines)
     {
-        var rope = new LongerRope(10);
-        foreach (var line in lines)
+        var forest = ParseInput(lines);
+        //PrintForestWithVisibility(forest);
+        var topScore = 0;
+        for (int i = 0; i < forest.GetLength(0); i++)
         {
-            rope.MakeMove(line);
-            rope.Print();
+            for (int j = 0; j < forest.GetLength(1); j++)
+            {
+                var ss = GetScenicScore(forest, i, j);
+                if (ss > topScore) topScore = ss;
+            }
         }
 
-        rope.PrintHistory();
-        Console.WriteLine(rope.TailsDistance);
+        Console.WriteLine(topScore);
+    }
+
+    /// <summary>returns multiplied number of trees visible in each direction</summary>
+    private int GetScenicScore(short[,] forest, int row, int col)
+    {
+        if (row == 0 || row == forest.GetLength(0) || col == 0 || col == forest.GetLength(1))
+            return 0; // score of trees on edge are always 0
+
+        var currentTree = forest[row, col];
+        int left = 0, right = 0, top = 0, bottom = 0;
+
+        for (int c = col - 1; c >= 0; c--)
+        {
+            left++;
+            if (forest[row, c] >= currentTree)
+            {
+                break;
+            }
+        }
+
+        for (int c = col + 1; c < forest.GetLength(1); c++)
+        {
+            right++;
+            if (forest[row, c] >= currentTree)
+            {
+                break;
+            }
+        }
+
+        for (int r = row - 1; r >= 0; r--)
+        {
+            top++;
+            if (forest[r, col] >= currentTree)
+            {
+                break;
+            }
+        }
+
+        for (int r = row + 1; r < forest.GetLength(0); r++)
+        {
+            bottom++;
+            if (forest[r, col] >= currentTree)
+            {
+                break;
+            }
+        }
+
+        return left * right * top * bottom;
+    }
+
+    private short[,] ParseInput(string[] lines)
+    {
+        var forest = new short[lines.Length, lines[0].Length];
+        for (int i = 0; i < forest.GetLength(0); i++)
+        {
+            for (int j = 0; j < forest.GetLength(1); j++)
+            {
+                forest[i, j] = short.Parse(lines[i][j].ToString());
+            }
+        }
+
+        return forest;
     }
 }

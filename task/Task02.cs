@@ -1,3 +1,5 @@
+// Day 2: Rock Paper Scissors
+
 public class Task02 : ITask
 {
     private const int PointsLose = 0;

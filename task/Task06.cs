@@ -1,3 +1,5 @@
+// Day 6: Tuning Trouble
+
 namespace AdventOfCode;
 
 public class Task06 : ITask

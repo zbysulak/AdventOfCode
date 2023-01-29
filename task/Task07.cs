@@ -1,158 +1,164 @@
-namespace AdventOfCode;
+// Day 7: No Space Left On Device
 
 public class Task07 : ITask
 {
+    private class Directory
+    {
+        public Directory(string input) : this(input, null)
+        {
+        }
+
+        public Directory(string input, Directory parent)
+        {
+            ParentDirectory = parent;
+            Name = input.Split(' ')[1];
+            Files = new List<File>();
+            Directories = new List<Directory>();
+        }
+
+        public string Name { get; set; }
+        public Directory ParentDirectory { get; set; }
+        public IList<Directory> Directories { get; set; }
+        public IList<File> Files { get; set; }
+
+        public long Sum(long limit)
+        {
+            var mySize = Size();
+            return (mySize <= limit ? mySize : 0) + Directories.Sum(d => d.Sum(limit));
+        }
+
+        public IEnumerable<long> GetSizeOfAllDirectories()
+        {
+            var list = new List<long> { Size() };
+            var otherDirs = Directories.SelectMany(d => d.GetSizeOfAllDirectories());
+            list.AddRange(otherDirs);
+            return list;
+        }
+
+        private long Size()
+        {
+            return Files.Sum(f => f.Size) + Directories.Sum(d => d.Size());
+        }
+
+        public override string ToString()
+        {
+            return $"dir {Name}";
+        }
+
+        public void MakeTree(int depth = 0)
+        {
+            Console.WriteLine(Depth(depth) + $"- {Name} - dir ({Size()})");
+            foreach (var dir in Directories)
+            {
+                Console.WriteLine(Depth(depth + 1));
+                dir.MakeTree(depth + 1);
+            }
+
+            foreach (var file in Files)
+            {
+                Console.WriteLine(Depth(depth + 1) + $"- {file.Name}({file.Size})");
+            }
+        }
+
+        private string Depth(int depth)
+        {
+            var str = "";
+            for (int i = 0; i < depth; i++)
+            {
+                str += "  ";
+            }
+
+            return str;
+        }
+    }
+
+    private class File
+    {
+        public string Name { get; set; }
+        public long Size { get; set; }
+
+        public File(string input)
+        {
+            var i = input.Split(' ');
+            Name = i[1];
+            Size = long.Parse(i[0]);
+        }
+    }
+
+    private Directory CreateFilesystem(string[] lines)
+    {
+        var root = new Directory(" /");
+
+        var currentDir = root;
+        var i = 0;
+        while (i < lines.Length)
+        {
+            if (lines[i].StartsWith("$"))
+            {
+                // command
+                var command = lines[i].Split(' ');
+                switch (command[1])
+                {
+                    case "cd":
+                        switch (command[2])
+                        {
+                            case "/":
+                                currentDir = root;
+                                break;
+                            case "..":
+                                currentDir = currentDir.ParentDirectory;
+                                break;
+                            default:
+                                currentDir = currentDir.Directories.Single(d => d.Name == command[2]);
+                                break;
+                        }
+
+                        break;
+                    case "ls":
+                        break;
+                }
+            }
+            else if (lines[i].StartsWith("dir "))
+            {
+                //create dir
+                currentDir.Directories.Add(new Directory(lines[i], currentDir));
+            }
+            else
+            {
+                //it is file
+                currentDir.Files.Add(new File(lines[i]));
+            }
+
+            i++;
+        }
+
+        return root;
+    }
+
     public void Solve(string[] lines)
     {
-        var forest = ParseInput(lines);
-        //PrintForestWithVisibility(forest);
-        var numberOfVisibleTrees = 0;
-        for (int i = 0; i < forest.GetLength(0); i++)
-        {
-            for (int j = 0; j < forest.GetLength(1); j++)
-            {
-                numberOfVisibleTrees += IsTreeVisible(forest, i, j) ? 1 : 0;
-            }
-        }
+        var root = CreateFilesystem(lines);
 
-        Console.WriteLine(numberOfVisibleTrees);
+        root.MakeTree();
+
+        Console.WriteLine(root.Sum(100000));
     }
 
-    private void PrintForestWithVisibility(short[,] forest)
-    {
-        for (int i = 0; i < forest.GetLength(0); i++)
-        {
-            for (int j = 0; j < forest.GetLength(1); j++)
-            {
-                Console.Write(forest[i, j] + (IsTreeVisible(forest, i, j) ? "+" : "-"));
-            }
-
-            Console.WriteLine();
-        }
-    }
-
-    private bool IsTreeVisible(short[,] forest, int row, int col)
-    {
-        if (row == 0 || row == forest.GetLength(0) || col == 0 || col == forest.GetLength(1))
-            return true; // trees on the edge are always visible
-        var currentTree = forest[row, col];
-        bool left = true, right = true, top = true, bottom = true;
-
-        for (int c = 0; c < col; c++)
-        {
-            if (forest[row, c] >= currentTree)
-            {
-                left = false;
-                break;
-            }
-        }
-
-        for (int c = forest.GetLength(1) - 1; c > col; c--)
-        {
-            if (forest[row, c] >= currentTree)
-            {
-                right = false;
-                break;
-            }
-        }
-
-        for (int r = 0; r < row; r++)
-        {
-            if (forest[r, col] >= currentTree)
-            {
-                top = false;
-                break;
-            }
-        }
-
-        for (int r = forest.GetLength(0) - 1; r > row; r--)
-        {
-            if (forest[r, col] >= currentTree)
-            {
-                bottom = false;
-                break;
-            }
-        }
-
-        return left | right | top | bottom;
-    }
 
     public void Solve2(string[] lines)
     {
-        var forest = ParseInput(lines);
-        //PrintForestWithVisibility(forest);
-        var topScore = 0;
-        for (int i = 0; i < forest.GetLength(0); i++)
+        var root = CreateFilesystem(lines);
+        var totalSpace = 70000000;
+        var spaceNeeded = 30000000;
+        var sizes = root.GetSizeOfAllDirectories().ToArray();
+        Array.Sort(sizes);
+        foreach (var item in sizes)
         {
-            for (int j = 0; j < forest.GetLength(1); j++)
-            {
-                var ss = GetScenicScore(forest, i, j);
-                if (ss > topScore) topScore = ss;
-            }
+            Console.WriteLine(item);
         }
 
-        Console.WriteLine(topScore);
-    }
-
-    /// <summary>returns multiplied number of trees visible in each direction</summary>
-    private int GetScenicScore(short[,] forest, int row, int col)
-    {
-        if (row == 0 || row == forest.GetLength(0) || col == 0 || col == forest.GetLength(1))
-            return 0; // score of trees on edge are always 0
-
-        var currentTree = forest[row, col];
-        int left = 0, right = 0, top = 0, bottom = 0;
-
-        for (int c = col - 1; c >= 0; c--)
-        {
-            left++;
-            if (forest[row, c] >= currentTree)
-            {
-                break;
-            }
-        }
-
-        for (int c = col + 1; c < forest.GetLength(1); c++)
-        {
-            right++;
-            if (forest[row, c] >= currentTree)
-            {
-                break;
-            }
-        }
-
-        for (int r = row - 1; r >= 0; r--)
-        {
-            top++;
-            if (forest[r, col] >= currentTree)
-            {
-                break;
-            }
-        }
-
-        for (int r = row + 1; r < forest.GetLength(0); r++)
-        {
-            bottom++;
-            if (forest[r, col] >= currentTree)
-            {
-                break;
-            }
-        }
-
-        return left * right * top * bottom;
-    }
-
-    private short[,] ParseInput(string[] lines)
-    {
-        var forest = new short[lines.Length, lines[0].Length];
-        for (int i = 0; i < forest.GetLength(0); i++)
-        {
-            for (int j = 0; j < forest.GetLength(1); j++)
-            {
-                forest[i, j] = short.Parse(lines[i][j].ToString());
-            }
-        }
-
-        return forest;
+        var availableSpace = totalSpace - sizes.Max();
+        var smallestDirToFreeUpEnoughSpace = sizes.First(s => availableSpace + s > spaceNeeded);
+        Console.WriteLine(smallestDirToFreeUpEnoughSpace);
     }
 }

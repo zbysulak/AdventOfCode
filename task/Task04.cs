@@ -1,3 +1,5 @@
+// Day 4: Camp Cleanup
+
 public class Task04 : ITask
 {
     private class Ranges
