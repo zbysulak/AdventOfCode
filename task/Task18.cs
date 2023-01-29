@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace AdventOfCode;
 
-public class Task18
+public class Task18 : ITask
 {
     private record Cube
     {

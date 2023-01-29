@@ -1,6 +1,6 @@
 namespace AdventOfCode;
 
-public class Task16
+public class Task16 : ITask
 {
     class Valve
     {

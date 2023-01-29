@@ -1,8 +1,6 @@
-using System.Drawing;
-
 namespace AdventOfCode;
 
-public class Task25
+public class Task25 : ITask
 {
     private long DecodeSnafu(string snafu)
     {

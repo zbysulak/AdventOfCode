@@ -3,7 +3,7 @@ using System.Drawing;
 
 namespace AdventOfCode;
 
-public class Task12
+public class Task12 : ITask
 {
     public void Solve(string[] lines)
     {

@@ -1,9 +1,10 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using AdventOfCode;
 
-using AdventOfCode;
-
-string[] lines = System.IO.File.ReadAllLines(@"..\..\..\input\06");
-
-var task = new Task06();
+ITask task = new Task06();
+var tasknumber = task.GetType().ToString().Substring(4);
+var sample = true;
+string[] lines = System.IO.File.ReadAllLines(@"..\..\..\input\" + tasknumber + (sample ? "-sample" : ""));
+Console.WriteLine("First part:");
 task.Solve(lines);
+Console.WriteLine("Second part:");
 task.Solve2(lines);

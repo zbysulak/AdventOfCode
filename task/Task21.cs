@@ -1,6 +1,6 @@
 namespace AdventOfCode;
 
-public class Task21
+public class Task21 : ITask
 {
     private const string Root = "root";
     private const string Me = "humn";

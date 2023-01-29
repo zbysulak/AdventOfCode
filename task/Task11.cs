@@ -1,6 +1,6 @@
 namespace AdventOfCode;
 
-public class Task11
+public class Task11 : ITask
 {
     private class Monkey
     {
@@ -115,7 +115,8 @@ public class Task11
         },
     };
 
-    public void Solve()
+    // input is not used in this task because parsing would be too complicated
+    public void Solve(string[] lines)
     {
         var monkeys = Monkeys;
         var inspections = new int[monkeys.Count];
@@ -141,7 +142,7 @@ public class Task11
         Console.WriteLine(inspections[^1] * inspections[^2]);
     }
 
-    public void Solve2()
+    public void Solve2(string[] lines)
     {
         var monkeys = Monkeys;
         var inspections = new int[monkeys.Count];

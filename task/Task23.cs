@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace AdventOfCode;
 
-public class Task23
+public class Task23 : ITask
 {
     public class Elf
     {

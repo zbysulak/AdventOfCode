@@ -1,6 +1,6 @@
 namespace AdventOfCode;
 
-public class Task08
+public class Task08 : ITask
 {
     private class Position
     {

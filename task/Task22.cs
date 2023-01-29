@@ -1,6 +1,6 @@
 namespace AdventOfCode;
 
-public class Task22
+public class Task22 : ITask
 {
     public void Solve(string[] lines)
     {

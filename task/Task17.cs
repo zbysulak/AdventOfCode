@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace AdventOfCode;
 
-public class Task17
+public class Task17 : ITask
 {
     record LongPoint
     {

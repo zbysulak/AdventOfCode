@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace AdventOfCode;
 
-public class Task24
+public class Task24 : ITask
 {
     private static int mod(int number, int mod) => (number % mod + mod) % mod;
 

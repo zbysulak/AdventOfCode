@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace AdventOfCode;
 
-public class Task15
+public class Task15 : ITask
 {
     public record Range
     {

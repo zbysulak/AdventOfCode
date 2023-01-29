@@ -1,6 +1,6 @@
 namespace AdventOfCode;
 
-public class Task13
+public class Task13 : ITask
 {
     public interface IMessageObject
     {
