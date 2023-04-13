@@ -49,76 +49,11 @@ public class Task16 : ITask
         const int timeLimit = 30;
         var valves = lines.Select((l, i) => new Valve(l, i)).ToArray();
         var nameToIdx = valves.ToDictionary<Valve, string, int>(v => v.Name, v => v.Index);
-        var distMatrix = new short[valves.Length, valves.Length];
-
-        #region floyd-warshall
-
-        var print = () =>
-        {
-            Console.Write("\t");
-            for (int i = 0; i < valves.Length; i++)
-            {
-                Console.Write($"\t{valves[i].Name}({valves[i].Flow})");
-            }
-
-            Console.WriteLine();
-            for (int i = 0; i < distMatrix.GetLength(0); i++)
-            {
-                Console.Write($"\t{valves[i].Name}");
-                for (int j = 0; j < distMatrix.GetLength(1); j++)
-                {
-                    Console.Write($"\t{distMatrix[i, j]}");
-                }
-
-                Console.WriteLine();
-            }
-        };
-
-        for (int i = 0; i < valves.Length; i++)
-        {
-            for (int j = 0; j < valves.Length; j++)
-            {
-                distMatrix[i, j] = short.MaxValue;
-            }
-        }
-
-        for (int i = 0; i < valves.Length; i++)
-        {
-            distMatrix[i, i] = 0;
-        }
-
-        foreach (var valve in valves)
-        {
-            var f = valve.Index;
-            foreach (var tunnel in valve.Tunnels)
-            {
-                var t = valves[nameToIdx[tunnel]].Index;
-                distMatrix[f, t] = 1;
-                distMatrix[t, f] = 1;
-            }
-        }
-
-        for (int i = 0; i < distMatrix.GetLength(0); i++)
-        {
-            for (int j = 0; j < distMatrix.GetLength(0); j++)
-            {
-                for (int k = 0; k < distMatrix.GetLength(0); k++)
-                {
-                    if (distMatrix[i, j] > distMatrix[i, k] + distMatrix[k, j])
-                    {
-                        distMatrix[i, j] = (short)(distMatrix[i, k] + distMatrix[k, j]);
-                    }
-                }
-            }
-        }
-
-        //print();
-
-        #endregion
+        var distMatrix = CreateDistanceMatrix(valves, nameToIdx);
 
         var states = new List<State> { new() { Position = "AA" } };
         var closedStates = new List<State>();
-        
+
         while (states.Any())
         {
             var newStates = new List<State>();
@@ -181,6 +116,102 @@ public class Task16 : ITask
         }
 
         Console.WriteLine(topPressure);
+    }
+
+    private static short[,] CreateDistanceMatrix(IReadOnlyList<Valve> valves,
+        IReadOnlyDictionary<string, int> nameToIdx)
+    {
+        var distMatrix = new short[valves.Count, valves.Count];
+        var print = () =>
+        {
+            Console.Write("\t");
+            for (int i = 0; i < valves.Count; i++)
+            {
+                Console.Write($"\t{valves[i].Name}({valves[i].Flow})");
+            }
+
+            Console.WriteLine();
+            for (int i = 0; i < distMatrix.GetLength(0); i++)
+            {
+                Console.Write($"\t{valves[i].Name}");
+                for (int j = 0; j < distMatrix.GetLength(1); j++)
+                {
+                    Console.Write($"\t{distMatrix[i, j]}");
+                }
+
+                Console.WriteLine();
+            }
+        };
+
+        for (int i = 0; i < valves.Count; i++)
+        {
+            for (int j = 0; j < valves.Count; j++)
+            {
+                distMatrix[i, j] = short.MaxValue;
+            }
+        }
+
+        for (int i = 0; i < valves.Count; i++)
+        {
+            distMatrix[i, i] = 0;
+        }
+
+        foreach (var valve in valves)
+        {
+            var f = valve.Index;
+            foreach (var tunnel in valve.Tunnels)
+            {
+                var t = valves[nameToIdx[tunnel]].Index;
+                distMatrix[f, t] = 1;
+                distMatrix[t, f] = 1;
+            }
+        }
+
+        for (int i = 0; i < distMatrix.GetLength(0); i++)
+        {
+            for (int j = 0; j < distMatrix.GetLength(0); j++)
+            {
+                for (int k = 0; k < distMatrix.GetLength(0); k++)
+                {
+                    if (distMatrix[i, j] > distMatrix[i, k] + distMatrix[k, j])
+                    {
+                        distMatrix[i, j] = (short)(distMatrix[i, k] + distMatrix[k, j]);
+                    }
+                }
+            }
+        }
+
+        //print();
+        return distMatrix;
+    }
+
+    private class State2
+    {
+        public class Target
+        {
+            public string Name { get; set; }
+            public int Distance { get; set; }
+        }
+
+        /// <summary>
+        /// Minute that just started
+        /// </summary>
+        public int Minute { get; set; }
+
+        public List<string> OpenedValves { get; set; }
+        public Target MyTarget { get; set; }
+        public Target ElephantTarget { get; set; }
+        public int ReleasedPressure { get; set; }
+        public State2? Previous { get; set; } // for debugging purposes
+        public int Id { get; set; } // for debugging purposes
+
+        private static int _i = 0;
+
+        public State2()
+        {
+            Id = _i++;
+            OpenedValves = new List<string>();
+        }
     }
 
     public void Solve2(string[] lines)
