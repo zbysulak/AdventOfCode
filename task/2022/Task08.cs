@@ -1,8 +1,8 @@
 // Day 8: Treetop Tree House
 
-namespace AdventOfCode;
+namespace AdventOfCode.task._2022;
 
-public class Task07 : ITask
+public class Task08 : ITask
 {
     public void Solve(string[] lines)
     {

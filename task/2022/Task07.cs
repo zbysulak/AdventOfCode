@@ -1,5 +1,7 @@
 // Day 7: No Space Left On Device
 
+namespace AdventOfCode.task._2022;
+
 public class Task07 : ITask
 {
     private class Directory

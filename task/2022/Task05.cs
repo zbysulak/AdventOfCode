@@ -1,5 +1,7 @@
 // Day 5: Supply Stacks
 
+namespace AdventOfCode.task._2022;
+
 public class Task05 : ITask
 {
     private class Command
@@ -83,9 +85,9 @@ public class Task05 : ITask
 
         PrintStacks(stacks);
         /*foreach (var item in commands)
-        {
-          Console.WriteLine(item);
-        }*/
+    {
+      Console.WriteLine(item);
+    }*/
         foreach (var s in stacks)
         {
             Console.Write(s.Peek());

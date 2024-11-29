@@ -1,7 +1,6 @@
-using System.Collections;
 using System.Drawing;
 
-namespace AdventOfCode;
+namespace AdventOfCode.task._2022;
 
 public class Task12 : ITask
 {

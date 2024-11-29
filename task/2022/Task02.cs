@@ -1,5 +1,7 @@
 // Day 2: Rock Paper Scissors
 
+namespace AdventOfCode.task._2022;
+
 public class Task02 : ITask
 {
     private const int PointsLose = 0;

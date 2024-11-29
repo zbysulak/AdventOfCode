@@ -1,6 +1,6 @@
 // Day 10: Cathode-Ray Tube
 
-namespace AdventOfCode;
+namespace AdventOfCode.task._2022;
 
 public class Task10 : ITask
 {

@@ -1,8 +1,8 @@
 // Day 9: Rope Bridge
 
-namespace AdventOfCode;
+namespace AdventOfCode.task._2022;
 
-public class Task08 : ITask
+public class Task09 : ITask
 {
     private class Position
     {

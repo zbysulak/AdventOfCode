@@ -1,5 +1,7 @@
 // Day 20: Grove Positioning System
 
+namespace AdventOfCode.task._2022;
+
 public class Task20 : ITask
 {
     private static int CircleMod(long number, int mod) => (int)((number % mod) + mod) % mod;
@@ -118,7 +120,7 @@ public class Task20 : ITask
                 }
 
                 /*Console.WriteLine($"Moved {item / Multiplier}: \t" +
-                                  string.Join(" ", idxArray.Select(i => dict[i] / Multiplier))); /**/
+                              string.Join(" ", idxArray.Select(i => dict[i] / Multiplier))); /**/
             }
         }
 

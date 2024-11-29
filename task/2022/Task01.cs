@@ -1,5 +1,7 @@
 // Day 1: Calorie Counting
 
+namespace AdventOfCode.task._2022;
+
 public class Task01 : ITask
 {
     public void Solve(string[] lines)

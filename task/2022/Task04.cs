@@ -1,5 +1,7 @@
 // Day 4: Camp Cleanup
 
+namespace AdventOfCode.task._2022;
+
 public class Task04 : ITask
 {
     private class Ranges

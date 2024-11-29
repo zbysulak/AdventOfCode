@@ -1,5 +1,7 @@
 // Day 3: Rucksack Reorganization
 
+namespace AdventOfCode.task._2022;
+
 public class Task03 : ITask
 {
     public void Solve(string[] lines)

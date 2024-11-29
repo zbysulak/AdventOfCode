@@ -1,7 +1,4 @@
-using System.Drawing;
-using System.Runtime.InteropServices;
-
-namespace AdventOfCode;
+namespace AdventOfCode.task._2022;
 
 public class Task18 : ITask
 {

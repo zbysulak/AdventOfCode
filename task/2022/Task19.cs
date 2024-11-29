@@ -11,6 +11,8 @@
 
 using System.Text.RegularExpressions;
 
+namespace AdventOfCode.task._2022;
+
 public class Task19 : ITask
 {
     public void Solve(string[] lines)

@@ -1,12 +1,12 @@
-﻿using AdventOfCode;
+﻿using AdventOfCode.task._2024;
 
 ITask task = new Task01();
 var taskNumber = task.GetType().Name[4..];
-const bool sample = false;
+const bool sample = true;
 string[] lines;
 try
 {
-    lines = File.ReadAllLines(@"..\..\..\input\" + taskNumber + (sample ? "-sample" : ""));
+    lines = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber + (sample ? "-sample" : ""));
 }
 catch (FileNotFoundException)
 {
