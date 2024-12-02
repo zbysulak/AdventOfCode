@@ -1,6 +1,6 @@
 ﻿using AdventOfCode.task._2024;
 
-ITask task = new Task01();
+ITask task = new Task03();
 var taskNumber = task.GetType().Name[4..];
 const bool sample = true;
 string[] lines;
