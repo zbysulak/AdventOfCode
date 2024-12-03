@@ -2,18 +2,15 @@
 
 ITask task = new Task03();
 var taskNumber = task.GetType().Name[4..];
-const bool sample = true;
-string[] lines;
-try
-{
-    lines = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber + (sample ? "-sample" : ""));
-}
-catch (FileNotFoundException)
-{
-    lines = Array.Empty<string>();
-}
 
-Console.WriteLine("First part:");
+var lines = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber);
+var linesSample = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber + "-sample");
+
+Console.Write("First part:\n\tSample:\t");
+task.Solve(linesSample);
+Console.Write("\tReal:\t");
 task.Solve(lines);
-Console.WriteLine("Second part:");
+Console.Write("\nSecond part:\n\tSample:\t");
+task.Solve2(linesSample);
+Console.Write("\tReal:\t");
 task.Solve2(lines);
