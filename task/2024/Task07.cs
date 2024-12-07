@@ -7,8 +7,18 @@ public class Task07 : ITask
     //done in 9 minutes
     public void Solve(string[] lines)
     {
-        var sum = 0L;
+        Console.WriteLine(FindValidEquations(lines,
+            new Func<long, long, long>[]
+            {
+                (r, o) => r + o,
+                (r, o) => r * o
+            })
+        );
+    }
 
+    private static long FindValidEquations(string[] lines, IEnumerable<Func<long, long, long>> operators)
+    {
+        var sum = 0L;
         foreach (var line in lines)
         {
             var s = line.Split(':');
@@ -20,8 +30,10 @@ public class Task07 : ITask
                 var newResults = new List<long>();
                 foreach (var result in results)
                 {
-                    newResults.Add(result + o);
-                    newResults.Add(result * o);
+                    foreach (var op in operators)
+                    {
+                        newResults.Add(op(result, o));
+                    }
                 }
 
                 results = newResults;
@@ -31,37 +43,19 @@ public class Task07 : ITask
                 sum += expectedResult;
         }
 
-        Console.WriteLine(sum);
+        return sum;
     }
 
     //done in 12 minutes
     public void Solve2(string[] lines)
     {
-        var sum = 0L;
-
-        foreach (var line in lines)
-        {
-            var s = line.Split(':');
-            var expectedResult = long.Parse(s[0]);
-            var operands = s[1].Split(' ').Skip(1).Select(long.Parse).ToArray();
-            var results = new List<long> { operands[0] };
-            foreach (var o in operands.Skip(1))
+        Console.WriteLine(FindValidEquations(lines,
+            new Func<long, long, long>[]
             {
-                var newResults = new List<long>();
-                foreach (var result in results)
-                {
-                    newResults.Add(result + o);
-                    newResults.Add(result * o);
-                    newResults.Add(long.Parse(result.ToString() + o));
-                }
-
-                results = newResults;
-            }
-
-            if (results.Any(r => r == expectedResult))
-                sum += expectedResult;
-        }
-
-        Console.WriteLine(sum);
+                (r, o) => r + o,
+                (r, o) => r * o,
+                (r, o) => long.Parse(r.ToString() + o)
+            })
+        );
     }
 }
