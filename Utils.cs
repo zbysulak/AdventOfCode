@@ -2,6 +2,16 @@ namespace AdventOfCode;
 
 public class Utils
 {
+    public static bool CheckBounds(string[] array, int x, int y)
+    {
+        return x >= 0 && x < array[0].Length && y >= 0 && y < array.Length;
+    }
+
+    public static bool CheckBounds(string[] array, (int x, int y) pos)
+    {
+        return CheckBounds(array, pos.x, pos.y);
+    }
+
     public static bool CheckBounds(object[][] array, int x, int y)
     {
         return x >= 0 && x < array[0].Length && y >= 0 && y < array.Length;
