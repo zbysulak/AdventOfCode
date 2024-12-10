@@ -1,6 +1,6 @@
 ﻿using AdventOfCode.task._2024;
 
-ITask task = new Task09();
+ITask task = new Task10();
 var taskNumber = task.GetType().Name[4..];
 
 var lines = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber);
