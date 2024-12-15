@@ -17,6 +17,11 @@ public class Utils
         return x >= 0 && x < array[0].Length && y >= 0 && y < array.Length;
     }
 
+    public static bool CheckBounds(char[][] array, (int x, int y) pos)
+    {
+        return pos.x >= 0 && pos.x < array[0].Length && pos.y >= 0 && pos.y < array.Length;
+    }
+
     public static bool CheckBounds(object[][] array, int[] pos)
     {
         if (pos.Length > 2)
@@ -39,4 +44,18 @@ public class Utils
         new[] { 0, 1 }, new[] { -1, 1 },
         new[] { -1, 0 }, new[] { -1, -1 }
     };
+
+    public static IEnumerable<(int x, int y)> IterateOverGrid(char[][] grid, bool printLine = false)
+    {
+        for (int y = 0; y < grid.Length; y++)
+        {
+            for (int x = 0; x < grid[y].Length; x++)
+            {
+                yield return (x, y);
+            }
+
+            if (printLine)
+                Console.WriteLine();
+        }
+    }
 }
