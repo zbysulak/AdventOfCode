@@ -58,4 +58,15 @@ public class Utils
                 Console.WriteLine();
         }
     }
+
+    public static (int x, int y) FindInGrid(char[][] grid, char c)
+    {
+        foreach (var (x, y) in IterateOverGrid(grid))
+        {
+            if (grid[y][x] == c)
+                return (x, y);
+        }
+
+        throw new Exception("Not found");
+    }
 }
