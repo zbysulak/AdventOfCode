@@ -36,31 +36,39 @@ public class Task19 : ITask
     }
 
     private string[] _towels;
+    private Dictionary<string, long> _lookup;
 
     public void Solve2(string[] lines)
     {
         _towels = lines[0].Split(", ");
+        _lookup = new Dictionary<string, long>();
+        var possibleDesigns = 0L;
 
-        var possibleDesigns = 0;
         foreach (var p in lines.Skip(2))
         {
-            var results = 0;
-            GetPossibleArrangements(p, ref results);
+            var results = GetPossibleArrangements(p);
+
             possibleDesigns += results;
-            Console.WriteLine($"{p} can be done in {results} ways");
+            // Console.WriteLine($"{p} can be done in {results} ways");
         }
 
         Console.WriteLine(possibleDesigns);
     }
 
-    private void GetPossibleArrangements(string design, ref int count)
+    private long GetPossibleArrangements(string design)
     {
         if (design.Length == 0)
         {
-            count++;
-            return;
+            return 1;
         }
 
+        if (_lookup.TryGetValue(design, out var arrangements))
+        {
+            // Console.WriteLine("\tlooked up value for - " + design);
+            return arrangements;
+        }
+
+        var ways = 0L;
         foreach (var t in _towels)
         {
             var tl = t.Length;
@@ -70,8 +78,11 @@ public class Task19 : ITask
             if (new string(design.Take(tl).ToArray()) == t)
             {
                 var rest = new string(design.Skip(tl).ToArray());
-                GetPossibleArrangements(rest, ref count);
+                ways += GetPossibleArrangements(rest);
             }
         }
+
+        _lookup[design] = ways;
+        return ways;
     }
 }
