@@ -95,7 +95,7 @@ public class Task17 : ITask
                     regB = regB ^ commands[commandPointer + 1];
                     break;
                 case 2: // bst: B = co % 8
-                    regB = GetComboOperand() % 8;
+                    regB = ((GetComboOperand() % 8) + 8) % 8;
                     break;
                 case 3: // jnz 
                     if (regA != 0)
@@ -108,9 +108,7 @@ public class Task17 : ITask
                     regB = regB ^ regC;
                     break;
                 case 5: // out
-                    var c = (int)GetComboOperand() % 8;
-                    /*if (commands[output.Count] != c)
-                        return false;*/
+                    var c = (int)((GetComboOperand() % 8) + 8) % 8;
                     output.Add(c);
                     break;
                 case 6: // bdv 
@@ -124,15 +122,9 @@ public class Task17 : ITask
             commandPointer += 2;
         }
 
-        Console.WriteLine(regAInit + " (" + Convert.ToString(regAInit, 8) + ") -> " + string.Join(",", output));
+        // Console.WriteLine(regAInit + " (" + Convert.ToString(regAInit, 8) + ") -> \t" +
+        //                  string.Join(",", output.Select(i => i.ToString().PadLeft(2))));
 
-        /*for (int i = 0; i < commands.Length; i++)
-        {
-            if (output.Count <= i || output[i] != commands[i])
-                return false;
-        }
-
-        return true;*/
         return output;
 
         long GetComboOperand()
@@ -162,10 +154,10 @@ public class Task17 : ITask
     {
         var commands = lines[4].Substring(9).Split(',').Select(int.Parse).ToArray();
 
-        var regAoct = (long)Math.Pow(10, commands.Length - 1); // it has to be same lenght as number of commands
+        Console.WriteLine();
         var possibleStarts = new List<long> { 0L };
 
-        for (int i = commands.Length - 1; i > 0; i--)
+        for (int i = commands.Length - 1; i >= 0; i--)
         {
             var nextStarts = new List<long>();
             foreach (var start in possibleStarts)
@@ -186,6 +178,6 @@ public class Task17 : ITask
             possibleStarts = nextStarts;
         }
 
-        Console.WriteLine(Convert.ToInt64(regAoct.ToString(), 8));
+        Console.WriteLine(possibleStarts.Select(s => Convert.ToInt64(s.ToString(), 8)).OrderBy(e => e).First());
     }
 }
