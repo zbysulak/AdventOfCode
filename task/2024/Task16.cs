@@ -45,76 +45,70 @@ public class Task16 : ITask
         var start = Utils.FindInGrid(grid, 'S');
         var end = Utils.FindInGrid(grid, 'E');
 
+        const int dir = 1;
         var parents = new Dictionary<(int, int, int), List<(int, int, int)>>();
-        var distances = new Dictionary<(int, int, int), int>();
-
-        var dir = 1;
-
-        var queue = new List<((int x, int y, int dir) pos, int price)>();
-        queue.Add(((start.x, start.y, dir), 0));
-        while (queue.Any())
+        var distances = new Dictionary<(int, int, int), int> // don't forget to initialize it for start, it can cause cycles when backtracking
         {
-            var c = queue.First();
-            queue.Remove(c);
+            { (start.x, start.y, dir), 0 }
+        };
 
-            var dirArr = Utils.Directions4[c.pos.dir];
-            var dl = (c.pos.dir + 3) % 4;
-            var dr = (c.pos.dir + 1) % 4;
-            var next = new ((int x, int y, int dir) pos, int price)[]
+
+        var queue = new PriorityQueue<(int x, int y, int dir), int>();
+        queue.Enqueue((start.x, start.y, dir), 0);
+        while (queue.TryDequeue(out var c, out var p))
+        {
+            var dirs = Utils.Directions4;
+            var dl = (c.dir + 3) % 4;
+            var dr = (c.dir + 1) % 4;
+
+            var possibleMoves = new ((int x, int y, int dir) pos, int price)[]
             {
-                ((c.pos.x + dirArr[0], c.pos.y + dirArr[1], c.pos.dir), 1), // move
-                ((c.pos.x + Utils.Directions4[dl][0], c.pos.y + Utils.Directions4[dl][1], dl), 1001), // turn left
-                ((c.pos.x + Utils.Directions4[dr][0], c.pos.y + Utils.Directions4[dr][1], dr), 1001) // turn right
+                ((c.x + dirs[c.dir][0], c.y + dirs[c.dir][1], c.dir), 1),
+                ((c.x, c.y, dl), 1000),
+                ((c.x, c.y, dr), 1000),
             };
-            foreach (var n in next)
+
+            foreach (var possibleMove in possibleMoves)
             {
-                if (grid[n.pos.y][n.pos.x] == '#') continue;
-                if (!distances.ContainsKey(n.pos))
+                if (grid[possibleMove.pos.y][possibleMove.pos.x] == '#') continue;
+                if (!distances.TryGetValue(possibleMove.pos, out var distance)) // visiting this position (inc. direction) for the first time
                 {
-                    distances[n.pos] = c.price + n.price;
-                    if (parents.ContainsKey(n.pos))
-                        parents[n.pos].Add(c.pos);
-                    else
-                        parents.Add(n.pos, new List<(int, int, int)> { c.pos });
-                    queue.Add((n.pos, c.price + n.price));
+                    distances.Add(possibleMove.pos, p + possibleMove.price);
+                    parents.Add(possibleMove.pos, new List<(int, int, int)> { c });
+                    queue.Enqueue(possibleMove.pos, p + possibleMove.price);
                 }
-                else if (distances[n.pos] == c.price + n.price)
+                else if (distance == p + possibleMove.price) // visiting n-th time -> it is already in queue
                 {
-                    if (parents.ContainsKey(n.pos))
-                        parents[n.pos].Add(c.pos);
-                    else
-                        parents.Add(n.pos, new List<(int, int, int)> { c.pos });
+                    parents[possibleMove.pos].Add(c);
                 }
             }
         }
 
-        var goalParents = parents.Where(p => p.Key.Item1 == end.x && p.Key.Item2 == end.y);
-        var goalPrices = distances.Where(p => p.Key.Item1 == end.x && p.Key.Item2 == end.y);
-        var minGoal = goalPrices.OrderBy(p => p.Value).First().Key;
-        
-        
+        var endPrices = distances.Where(p => p.Key.Item1 == end.x && p.Key.Item2 == end.y);
+
+        // find which end direction is cheapest 
+        var cheapestEnd = endPrices.OrderBy(e => e.Value).First().Key;
 
         var uniqueTiles = new HashSet<(int, int)>();
-        CountVisitedTiles(parents, minGoal, uniqueTiles);
+        CountVisitedTiles(parents, cheapestEnd, uniqueTiles);
         Console.WriteLine(uniqueTiles.Count);
 
-        for (int y = 0; y < grid.Length; y++)
-        {
-            for (int x = 0; x < grid[y].Length; x++)
-            {
-                if(uniqueTiles.Contains((x,y)))
-                    Console.Write("O");
-                else 
-                    Console.Write(grid[y][x]);
-            }
+        /* for (int y = 0; y < grid.Length; y++)
+         {
+             for (int x = 0; x < grid[y].Length; x++)
+             {
+                 if (uniqueTiles.Contains((x, y)))
+                     Console.Write("O");
+                 else
+                     Console.Write(grid[y][x]);
+             }
 
-            Console.WriteLine();
-        }
-        
-        // 451 is too low
+             Console.WriteLine();
+         } */
     }
 
-    private void CountVisitedTiles(Dictionary<(int, int, int), List<(int, int, int)>> parents, (int, int, int) end,
+    // recursively traverse from end to start, add all visited tiles to set
+    private static void CountVisitedTiles(Dictionary<(int, int, int), List<(int, int, int)>> parents, (int, int, int) end,
         HashSet<(int, int)> tiles)
     {
         tiles.Add((end.Item1, end.Item2));
