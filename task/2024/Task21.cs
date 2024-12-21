@@ -1,4 +1,4 @@
-// Day 21
+// Day 21: Keypad Conundrum
 
 namespace AdventOfCode.task._2024;
 
@@ -10,6 +10,9 @@ public class Task21 : ITask
         protected Dictionary<char, (int x, int y)> Keys;
         private Dictionary<string, List<string>> _sequences = new();
 
+        /// <summary>
+        /// Lookup table for all valid sequences between two buttons 
+        /// </summary>
         public Dictionary<(char from, char to), List<string>> Lookup
         {
             get
@@ -66,7 +69,7 @@ public class Task21 : ITask
             }
 
             var combinations = new HashSet<string>();
-            GetCombinations(string.Join("", subSequence), "", combinations);
+            GetPermutations(string.Join("", subSequence), "", combinations);
             return combinations.Where(c => IsValid(c, from)).Select(e => new string(e) + 'A').ToList();
         }
 
@@ -91,7 +94,10 @@ public class Task21 : ITask
             return true;
         }
 
-        private static void GetCombinations(string seq, string current, HashSet<string> result)
+        /// <summary>
+        /// method to get all possible permutations of a sequence. result is stored in a hashset
+        /// </summary>
+        private static void GetPermutations(string seq, string current, HashSet<string> result)
         {
             if (string.IsNullOrEmpty(seq))
             {
@@ -102,12 +108,15 @@ public class Task21 : ITask
             {
                 var newCombination = current + seq[i];
                 var remaining = seq.Substring(0, i) + seq.Substring(i + 1);
-                GetCombinations(remaining, newCombination, result);
+                GetPermutations(remaining, newCombination, result);
             }
         }
 
         #endregion
 
+        /// <summary>
+        /// returns a list of all shortest sequences to press the buttons
+        /// </summary>
         public List<string> GetShortestSequences(string buttons)
         {
             if (_lookup == null)
@@ -200,77 +209,63 @@ public class Task21 : ITask
         Console.WriteLine(totalComplexity);
     }
 
-    //private KeyPad _numeric = new NumericKeyPad();
-    private KeyPad _directional = new DirectionalKeyPad();
+    private readonly KeyPad _directional = new DirectionalKeyPad();
 
-    private Dictionary<(char from, char to, int robot), List<string>> _lookup1 = new();
+    private Dictionary<(string command, int robot), long> _lookup = new();
 
-    private List<string> GetShortestPaths(char from, char to, int robot)
+    /// <summary>
+    /// get the shortest path for a required commands and number of robots that operates on directional keypad
+    /// </summary>
+    private long GetShortestPath(string commands, int robot)
     {
-        if (robot == 0)
+        if (robot == 0) return 1; // 1st robot presses the buttons directly - 1 way to do it
+        if (_lookup.ContainsKey((commands, robot)))
         {
-            Console.WriteLine("reached robot 0");
-            return _directional.Lookup[(from, to)];
+            return _lookup[(commands, robot)];
         }
 
-        if (_lookup1.ContainsKey((from, to, robot)))
-        {
-            //Console.WriteLine("hit " + from + "->" + to + " " + robot);
-            return _lookup1[(from, to, robot)];
-        }
-
-        var path = _directional.Lookup[(from, to)].Select(s => GetShortestPath(s, robot)).ToList();
-
-        _lookup1[(from, to, robot)] = path;
-        return path;
-    }
-
-    private Dictionary<(string command, int robot), string> _lookup2 = new();
-
-    private string GetShortestPath(string commands, int robot)
-    {
-        if (_lookup2.ContainsKey((commands, robot)))
-        {
-            //Console.WriteLine("hit " + commands + " " + robot);
-            return _lookup2[(commands, robot)];
-        }
-
-        var paths = new List<string> { "" };
+        var length = 0L;
         var c = 'A';
+        // for each move of robotic arm for desired commands compute minimal sequence in lower level
         foreach (var n in commands)
         {
-            var nextPaths = new List<string>();
-            var stepPaths = GetShortestPaths(c, n, robot - 1);
-            foreach (var p in paths)
+            var stepPaths = _directional.Lookup[(c, n)];
+            var min = long.MaxValue;
+            foreach (var p in stepPaths)
             {
-                nextPaths.AddRange(stepPaths.Select(s => p + s));
+                var sp = GetShortestPath(p, robot - 1);
+                if (sp < min)
+                {
+                    min = sp;
+                }
             }
 
+            length += min;
             c = n;
-            paths = nextPaths;
         }
 
-        var shortest = paths.OrderBy(s => s.Length).First();
-        _lookup2[(commands, robot)] = shortest;
-        return shortest;
+        _lookup[(commands, robot)] = length;
+        return length;
     }
 
     public void Solve2(string[] lines)
     {
-        _lookup1 = new();
-        _lookup2 = new();
+        _lookup = new();
         var totalComplexity = 0L;
         const int dPads = 26;
         foreach (var line in lines)
         {
-            var numPart = long.Parse(line.Substring(0, line.Length - 1));
+            var numPart = long.Parse(line[..^1]);
             var nkp = new NumericKeyPad();
+            // for 1st layer use numeric keypad
             var keysToPress = nkp.GetShortestSequences(line);
 
-            var sequences = keysToPress.Select(s => GetShortestPath(s, dPads)).Select(s => new { s, s.Length });
+            // then use directional keypad recursively for each layer
+            // for each possible numeric keypad sequence
+            var sequences = keysToPress.Select(s => GetShortestPath(s, dPads));
 
-            Console.WriteLine(sequences.First().Length);
-            totalComplexity += numPart * sequences.OrderBy(s => s.Length).First().Length;
+            var shortestSequence = sequences.OrderBy(s => s).First();
+            totalComplexity += numPart * shortestSequence;
         }
 
         Console.WriteLine(totalComplexity);

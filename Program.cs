@@ -11,6 +11,6 @@ Console.Write("First part:\n\tSample:\t");
 Console.Write("\tReal:\t");
 //task.Solve(lines);
 Console.Write("\nSecond part:\n\tSample:\t");
-//task.Solve2(linesSample);
+task.Solve2(linesSample);
 Console.Write("\tReal:\t");
 task.Solve2(lines);
