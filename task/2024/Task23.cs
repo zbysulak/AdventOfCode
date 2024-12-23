@@ -1,4 +1,4 @@
-// Day 22
+// Day 23: LAN party
 
 namespace AdventOfCode.task._2024;
 
@@ -115,108 +115,43 @@ public class Task23 : ITask
             adj[computers[c[1]], computers[c[0]]] = 1;
         }
 
-        _disconnectedComputers = new List<int>();
         var sets = new HashSet<string>();
-
-        foreach (var (c, ci) in computers)
-        {
-            var setsFromC = FindAllSetsFromNode(ci, adj);
-            foreach (var set in setsFromC)
-            {
-                var ss = set.Select(s => _idxToComputer[s]).ToList();
-                ss.Sort();
-                sets.Add(string.Join(',', ss));
-            }
-        }
+        BronKerbosch(new int[0], _idxToComputer.Keys.ToArray(), new int[0], adj, sets);
 
         Console.WriteLine(sets.OrderByDescending(s => s.Length).First());
-
-        // it is longer than 12
     }
 
-    private int _maxLength = 0;
-
-    private List<int> _disconnectedComputers;
-
-    private List<List<int>> FindAllSetsFromNode(int i, int[,] adj)
+    /// <summary>
+    /// Bron - Kerbosch algorithm to find all maximal cliques in a graph
+    /// </summary>
+    /// <param name="R">Current clique</param>
+    /// <param name="P">Potential nodes</param>
+    /// <param name="X">Nodes that have been tried and should not be considered anymore</param>
+    /// <param name="adj"></param>
+    /// <param name="sets"></param>
+    private void BronKerbosch(int[] R, int[] P, int[] X, int[,] adj, HashSet<string> sets)
     {
-        var sets = new List<List<int>>();
-        var open = new List<List<int>> { new() { i } };
-        while (open.Any())
+        if (P.Length == 0 && X.Length == 0)
         {
-            var current = open.First();
-            open.RemoveAt(0);
-
-            var neighbors = new List<int>();
-            for (int j = 0; j < adj.GetLength(0); j++)
+            var l = new List<string>();
+            foreach (var r in R)
             {
-                if (current.Contains(j)) continue;
-                var isConnected = true;
-                for (int k = 0; k < current.Count; k++)
-                {
-                    if (adj[current[k], j] == 0)
-                    {
-                        isConnected = false;
-                        break;
-                    }
-                }
-
-                if (isConnected)
-                    neighbors.Add(j);
+                l.Add(_idxToComputer[r]);
             }
 
-            if (neighbors.Count == 0)
-            {
-                sets.Add(current);
-            }
-            else
-            {
-                foreach (var n in neighbors)
-                {
-                    var newCurrent = new List<int>(current) { n };
-                    open.Add(newCurrent);
-                }
-            }
+            l.Sort();
+            sets.Add(string.Join(',', l));
+            return;
         }
 
-        return sets;
-    }
-
-    private void GetSets(List<int> current, int[,] adj, HashSet<string> sets)
-    {
-        for (int i = 0; i < adj.GetLength(0); i++)
+        foreach (var v in P)
         {
-            if (current.Contains(i)) continue;
-            if (adj[current[^1], i] == 0) continue;
-            if (_disconnectedComputers.Contains(i)) continue;
-            var newCurrent = new List<int>(current) { i };
-            var isConnected = true;
-            for (int j = 0; j < current.Count - 1; j++)
-            {
-                if (adj[newCurrent[j], newCurrent[^1]] == 0)
-                {
-                    isConnected = false;
-                    break;
-                }
-            }
-
-            if (isConnected)
-            {
-                if (newCurrent.Count > _maxLength)
-                {
-                    _maxLength = newCurrent.Count;
-                    var l = newCurrent.Select(s => _idxToComputer[s]).ToList();
-                    l.Sort();
-                    sets.Add(string.Join(',', l));
-                    Console.WriteLine("Set: " + string.Join(',', l));
-                }
-
-                GetSets(newCurrent, adj, sets);
-            }
-            else
-            {
-                //_disconnectedComputers.AddRange(current);
-            }
+            var newR = R.Append(v).ToArray();
+            var newP = P.Where(p => adj[v, p] == 1).ToArray();
+            var newX = X.Where(x => adj[v, x] == 1).ToArray();
+            BronKerbosch(newR, newP, newX, adj, sets);
+            P = P.Where(p => p != v).ToArray();
+            X = X.Append(v).ToArray();
         }
     }
 }
