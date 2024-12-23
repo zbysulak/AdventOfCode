@@ -117,10 +117,16 @@ public class Task23 : ITask
 
         _disconnectedComputers = new List<int>();
         var sets = new HashSet<string>();
+
         foreach (var (c, ci) in computers)
         {
-            GetSets(new List<int> { ci }, adj, sets);
-            Console.WriteLine("finished: " + c);
+            var setsFromC = FindAllSetsFromNode(ci, adj);
+            foreach (var set in setsFromC)
+            {
+                var ss = set.Select(s => _idxToComputer[s]).ToList();
+                ss.Sort();
+                sets.Add(string.Join(',', ss));
+            }
         }
 
         Console.WriteLine(sets.OrderByDescending(s => s.Length).First());
@@ -131,6 +137,50 @@ public class Task23 : ITask
     private int _maxLength = 0;
 
     private List<int> _disconnectedComputers;
+
+    private List<List<int>> FindAllSetsFromNode(int i, int[,] adj)
+    {
+        var sets = new List<List<int>>();
+        var open = new List<List<int>> { new() { i } };
+        while (open.Any())
+        {
+            var current = open.First();
+            open.RemoveAt(0);
+
+            var neighbors = new List<int>();
+            for (int j = 0; j < adj.GetLength(0); j++)
+            {
+                if (current.Contains(j)) continue;
+                var isConnected = true;
+                for (int k = 0; k < current.Count; k++)
+                {
+                    if (adj[current[k], j] == 0)
+                    {
+                        isConnected = false;
+                        break;
+                    }
+                }
+
+                if (isConnected)
+                    neighbors.Add(j);
+            }
+
+            if (neighbors.Count == 0)
+            {
+                sets.Add(current);
+            }
+            else
+            {
+                foreach (var n in neighbors)
+                {
+                    var newCurrent = new List<int>(current) { n };
+                    open.Add(newCurrent);
+                }
+            }
+        }
+
+        return sets;
+    }
 
     private void GetSets(List<int> current, int[,] adj, HashSet<string> sets)
     {
