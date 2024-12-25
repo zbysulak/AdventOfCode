@@ -1,10 +1,10 @@
 ﻿using AdventOfCode.task._2024;
 
-ITask task = new Task24();
+ITask task = new Task25();
 var taskNumber = task.GetType().Name[4..];
 
 var lines = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber);
-var linesSample = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber + "-sample-3");
+var linesSample = File.ReadAllLines(@"..\..\..\input\2024\" + taskNumber + "-sample");
 
 Console.Write("First part:\n\tSample:\t");
 task.Solve(linesSample);
