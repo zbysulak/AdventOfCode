@@ -21,8 +21,8 @@ public class Task24 : ITask
             var parts = gate.Split(" ");
             Console.WriteLine("inputs: " + gate + " : " +
                               gates.Count(pair => pair.Key == parts[0]) + " - " +
-                              gates.Count(pair => pair.Key == parts[2]) + " - " + 
-                                gates.Count(pair => pair.Key == parts[4]));
+                              gates.Count(pair => pair.Key == parts[2]) + " - " +
+                              gates.Count(pair => pair.Key == parts[4]));
         }
 
         while (unsolvedGates.Any())
@@ -64,16 +64,18 @@ public class Task24 : ITask
         Console.WriteLine(outputValue);
     }
 
-    private bool CheckOutput(long x, long y, int bits, List<string> gates)
+    private long GetOutput(long x, long y, int bits, List<string> gates)
     {
         var g = new Dictionary<string, bool>();
         GetInitialGates(x, 'x', bits, g);
         GetInitialGates(y, 'y', bits, g);
 
-        while (gates.Any())
+        var gatesCopy = new List<string>(gates);
+
+        while (gatesCopy.Any())
         {
             var toRemove = new List<string>();
-            foreach (var gate in gates)
+            foreach (var gate in gatesCopy)
             {
                 var parts = gate.Split(" ");
                 if (g.ContainsKey(parts[0]) && g.ContainsKey(parts[2]))
@@ -91,13 +93,13 @@ public class Task24 : ITask
 
             foreach (var gtr in toRemove)
             {
-                gates.Remove(gtr);
+                gatesCopy.Remove(gtr);
             }
         }
 
         var outputValue = GatesToLong(g.Where(gate => gate.Key.StartsWith("z")));
 
-        return outputValue == x + y;
+        return outputValue;
     }
 
     private void GetInitialGates(long n, char name, int bits, Dictionary<string, bool> gates)
@@ -139,9 +141,70 @@ public class Task24 : ITask
 
         var originalGates = new List<string>(lines.SkipWhile(a => a.Length < 10));
 
-        var isCorrect = CheckOutput(11, 13, initialGates.Count / 2, originalGates);
+        var outputInt = GetOutput(11, 13, initialGates.Count / 2, originalGates);
+
+        var outputBin = Convert.ToString(outputInt, 2);
+
+        Console.WriteLine(originalGates.Count(g => g[4] == 'A') + " AND");
+        Console.WriteLine(originalGates.Count(g => g[4] == 'O') + " OR");
+        Console.WriteLine(originalGates.Count(g => g[4] == 'X') + " XOR");
+
+        var solved = new HashSet<string>();
+
+        var pairsToSwap = new List<(string, string)>
+        {
+            ("y37 AND x37 -> z37", "gcg XOR nbm -> rrn"),
+            ("tnn OR bss -> z16", "kcm XOR grr -> fkb"),
+            ("y21 AND x21 -> rqf", "x21 XOR y21 -> nnr"),
+            ("qsj AND tjk -> z31", "qsj XOR tjk -> rdn")
+        };
+
+        foreach (var (a, b) in pairsToSwap)
+        {
+            var g1o = a.Split(" ")[4];
+            var g2o = b.Split(" ")[4];
+            originalGates.Remove(a);
+            originalGates.Remove(b);
+            originalGates.Add(a.Substring(0, a.Length - 3) + g2o);
+            originalGates.Add(b.Substring(0, b.Length - 3) + g1o);
+        }
+
+        var suspicious = new List<int> { 32, 33, 31 };
+        for (int i = 0; i <= 45; i++)
+        {
+            var g = "z" + i.ToString("D2");
+            if (suspicious.Contains(i))
+                Console.WriteLine("gate " + g + "----------------");
+            GetPathForGate(g, originalGates, solved, 0, suspicious.Contains(i));
+        }
         
-        // todo: idea - iterate from most significant bit and check if result is correct. if not, there is some gate that should be swapped. 
-        // or: try to organise gates to see an pattern, then find gates that doesnt match pattern
+        var swappedOutputs = pairsToSwap.SelectMany(s=>new string[]{s.Item1.Split(" ")[4], s.Item2.Split(" ")[4]}).ToList();
+        swappedOutputs.Sort();
+        Console.WriteLine(string.Join(",", swappedOutputs));
+    }
+
+    private void GetPathForGate(string gate, List<string> gates, HashSet<string> solved, int lvl, bool print)
+    {
+        if (solved.Contains(gate))
+            return;
+        var cg = gates.Single(g => g.Substring(g.Length - 3, 3) == gate);
+        if (print)
+        {
+            for (int i = 0; i < lvl; i++)
+            {
+                Console.Write(" ");
+            }
+
+            Console.WriteLine(string.Join(", ", cg) + "  ");
+        }
+
+        var split = cg.Split(" ");
+
+        if (!split[0].StartsWith("x") && !split[0].StartsWith("y"))
+            GetPathForGate(split[0], gates, solved, lvl + 1, print);
+        if (!split[2].StartsWith("x") && !split[2].StartsWith("y"))
+            GetPathForGate(split[2], gates, solved, lvl + 1, print);
+
+        solved.Add(split[4]);
     }
 }
