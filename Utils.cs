@@ -12,7 +12,7 @@ public class Utils
         return CheckBounds(array, pos.x, pos.y);
     }
 
-    public static bool CheckBounds(object[][] array, int x, int y)
+    public static bool CheckBounds<T>(T[][] array, int x, int y)
     {
         return x >= 0 && x < array[0].Length && y >= 0 && y < array.Length;
     }
@@ -46,6 +46,20 @@ public class Utils
     };
 
     public static IEnumerable<(int x, int y)> IterateOverGrid(char[][] grid, bool printLine = false)
+    {
+        for (int y = 0; y < grid.Length; y++)
+        {
+            for (int x = 0; x < grid[y].Length; x++)
+            {
+                yield return (x, y);
+            }
+
+            if (printLine)
+                Console.WriteLine();
+        }
+    }
+    
+    public static IEnumerable<(int x, int y)> IterateOverGrid(string[] grid, bool printLine = false)
     {
         for (int y = 0; y < grid.Length; y++)
         {
