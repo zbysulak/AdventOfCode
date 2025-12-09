@@ -38,23 +38,20 @@ public class Task01 : ITask
         {
             var d = line[0];
             var dist = int.Parse(line[1..]);
-            if (d == 'L')
+            var left = d == 'L';
+            if (left)
                 dist = -dist;
 
-            pos += 1000;
-
             var newPos = pos + dist;
-
-            var zeroPasses = (pos % 100 == 0 || newPos == 0 ? -1 : 0) + Math.Abs((newPos / 100) - (pos / 100));
-
+            var zeroPasses = Math.Abs(newPos / 100);
+            
+            if (newPos < 0 && pos != 0)
+                zeroPasses++;
+            if(left && newPos == 0)
+                zeroPasses++;
             pos = (newPos % 100 + 100) % 100;
-            if (pos == 0)
-            {
-                //zeroPasses = Math.Max(zeroPasses - 1, 0);
-                zeroCount++;
-            }
-
             zeroCount += zeroPasses;
+            //Console.WriteLine($"After {line}: pos={pos}, zeroPasses={zeroPasses}");
         }
 
         Console.WriteLine(zeroCount); // 5967 too high
