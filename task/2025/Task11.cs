@@ -37,74 +37,106 @@ public class Task11 : ITask
         Console.WriteLine(possiblePaths);
     }
 
+    private void PrintPaths(IDictionary<string, List<string>> paths)
+    {
+        foreach (var path in paths)
+        {
+            foreach (var next in path.Value)
+            {
+                Console.WriteLine($"{path.Key} {next}");
+            }
+        }
+    }
+
+    private Dictionary<string, int> _topologicalOrder;
+
     public void Solve2(string[] lines)
     {
         var paths = lines.Select(l => l.Split(": ")).ToDictionary(l => l[0], l => l[1].Split(" ").ToList());
-        var possiblePaths = 0;
 
-        var pathsWithDac = FindPathsTo(paths, new List<string> { "svr" }, "dac");
-        var pathsWithFftDac = pathsWithDac.Where(e => e.Contains("fft")).ToList();
 /*
-        var queue = new Queue<List<string>>();
-        var visited = new HashSet<string>();
-        var initialState = "svr";
-        queue.Enqueue(new List<string> { initialState });
-        visited.Add(initialState);
-        while (queue.Count > 0)
+        var filteredPaths = new Dictionary<string, List<string>>();
+        var skipped = new List<string>();
+        foreach (var p in paths)
         {
-            var path = queue.Dequeue();
-            if (path.Last() == "out")
+            if (skipped.Contains(p.Key)) continue;
+            var newDest = new List<string>(p.Value);
+            foreach (var dest in p.Value)
             {
-                //Console.WriteLine(string.Join(',',path));
-                if (path.Contains("fft") && path.Contains("dac"))
-                    possiblePaths++;
-                continue;
-            }
-
-            foreach (var next in paths[path.Last()])
-            {
-                var nextPath = new List<string>(path) { next };
-                var key = string.Join(',', nextPath.OrderBy(x => x));
-                if (!visited.Contains(key))
+                if (dest is "out" or "fft" or "dac") continue;
+                if (paths.TryGetValue(dest, out var to) && to.Count == 1 && to.Single() != "out" &&
+                    !filteredPaths.Any(e => e.Value.Contains(dest)))
                 {
-                    visited.Add(key);
-                    queue.Enqueue(nextPath);
+                    newDest.Remove(dest);
+                    newDest.Add(to.Single());
+                    skipped.Add(dest);
                 }
             }
-        }*/
 
-        Console.WriteLine(possiblePaths);
+            filteredPaths.Add(p.Key, newDest);
+        }
+
+        paths = filteredPaths;*/
+
+        paths.Add("out", new List<string>());
+
+        var L = new List<KeyValuePair<string, List<string>>>();
+        var S = new List<KeyValuePair<string, List<string>>> { new("svr", paths["svr"]) };
+
+        while (S.Count > 0)
+        {
+            var n = S.First();
+            S = S.Skip(1).ToList();
+            L.Add(n);
+            foreach (var p in paths[n.Key])
+            {
+                // co vedou do current node 
+                var a = paths.Where(e => e.Value.Contains(p));
+                if (a.All(e => L.Select(s => s.Key).Contains(e.Key)))
+                {
+                    S.Add(new(p, paths[p]));
+                }
+            }
+        }
+
+        _topologicalOrder = L.Select((e, i) => new { e.Key, i }).ToDictionary(e => e.Key, e => e.i);
+
+        Console.WriteLine($"\nOrder of chokepoints is: fft {_topologicalOrder["fft"]}, dac {_topologicalOrder["dac"]}");
+
+        var first = _topologicalOrder["fft"] < _topologicalOrder["dac"] ? "fft" : "dac";
+        var second = _topologicalOrder["fft"] > _topologicalOrder["dac"] ? "fft" : "dac";
+
+        var startToFirst = FindPathsTo(paths, "svr", first);
+        var firstToSecond = FindPathsTo(paths, first, second);
+        var secondToEnd = FindPathsTo(paths, second, "out");
+
+        Console.WriteLine(startToFirst * firstToSecond * secondToEnd);
     }
 
-    private IList<IList<string>> FindPathsTo(IDictionary<string, List<string>> paths, IList<string> path,
-        string goal)
+    private long FindPathsTo(IDictionary<string, List<string>> paths, string start, string goal)
     {
-        var queue = new Queue<IList<string>>();
-        var visited = new HashSet<string>();
-        var possiblePaths = new List<IList<string>>();
-        queue.Enqueue(path);
-        visited.Add(string.Join(',', path.OrderBy(x => x)));
+        var queue = new Queue<List<string>>();
+        var possiblePaths = 0;
+        queue.Enqueue(new List<string> { start });
         while (queue.Count > 0)
         {
             var currentPath = queue.Dequeue();
             if (currentPath.Last() == goal)
             {
-                //Console.WriteLine(string.Join(',',path));
-                //if (currentPath.Contains("fft") && currentPath.Contains("dac"))
-                possiblePaths.Add(currentPath);
+                possiblePaths++;
                 continue;
             }
 
             if (!paths.TryGetValue(currentPath.Last(), out var nextPaths)) continue;
             foreach (var next in nextPaths)
             {
+                if (currentPath.Contains(next)) continue;
+                if (_topologicalOrder[goal] < _topologicalOrder[next])
+                    continue;
+
+
                 var nextPath = new List<string>(currentPath) { next };
-                var key = string.Join(',', nextPath.OrderBy(x => x));
-                if (!visited.Contains(key))
-                {
-                    visited.Add(key);
-                    queue.Enqueue(nextPath);
-                }
+                queue.Enqueue(nextPath);
             }
         }
 
