@@ -115,28 +115,25 @@ public class Task11 : ITask
 
     private long FindPathsTo(IDictionary<string, List<string>> paths, string start, string goal)
     {
-        var queue = new Queue<List<string>>();
+        var queue = new Queue<string>();
         var possiblePaths = 0;
-        queue.Enqueue(new List<string> { start });
+        queue.Enqueue(start);
         while (queue.Count > 0)
         {
             var currentPath = queue.Dequeue();
-            if (currentPath.Last() == goal)
+            if (currentPath == goal)
             {
                 possiblePaths++;
                 continue;
             }
 
-            if (!paths.TryGetValue(currentPath.Last(), out var nextPaths)) continue;
+            if (!paths.TryGetValue(currentPath, out var nextPaths)) continue;
             foreach (var next in nextPaths)
             {
                 if (currentPath.Contains(next)) continue;
                 if (_topologicalOrder[goal] < _topologicalOrder[next])
                     continue;
-
-
-                var nextPath = new List<string>(currentPath) { next };
-                queue.Enqueue(nextPath);
+                queue.Enqueue(next);
             }
         }
 
